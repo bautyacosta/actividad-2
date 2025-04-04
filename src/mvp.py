@@ -1,34 +1,46 @@
-def calculo(kills,assists,deaths):
-    return kills * 3 + assists - deaths
-    
-def actualizar(stats,ronda):
-    mvp = None
-    max = -999
+def calcular_puntaje(kills, assists, deaths):
+    puntos = kills * 2 + assists
+    if deaths:
+        puntos -= 1
+    return puntos
 
-    for jugador, datos in ronda.items():
-        kills = datos['kills']
-        deaths = datos['deaths']
-        assists = datos['assists']
-        puntos = calculo(kills,assists,deaths)
+def procesar_rondas(rondas):
+    estadisticas = {}
 
-        if jugador not in stats:
-            stats[jugador] = {'puntos': 0, 'kills': 0, 'deaths': 0, 'assists': 0, 'mvp': 0}
-        stats[jugador]['puntos'] += puntos
-        stats[jugador]['kills'] += kills
-        stats[jugador]['deaths'] += deaths
-        stats[jugador]['assists'] += assists
+    for i, ronda in enumerate(rondas, 1):
+        print(f"\n--- RONDA {i} ---")
+        mvp = None
+        max_puntaje = float('-inf')
 
-        if puntos > max:
-            max = puntos
-            mvp = jugador
-        
-        if mvp: 
-            stats[jugador]['mvp'] += 1
-        
-        return mvp, max
+        for jugador, datos in ronda.items():
+            if jugador not in estadisticas:
+                estadisticas[jugador] = {
+                    'kills': 0,
+                    'assists': 0,
+                    'deaths': 0,
+                    'MVPs': 0,
+                    'puntos': 0
+                }
 
-def imprimir(stats):
-    print(f"{'Jugador':<10} {'Kills':<6} {'Assists':<8} {'Muertes':<8} {'MVPs':<5} {'Puntos':<6}")
-    print("-" * 50)
-    for jugador, datos in sorted(stats.items(), key=lambda x: x[1]['puntos'], reverse=True):
-        print(f"{jugador:<10} {datos['kills']:<6} {datos['assists']:<8} {datos['deaths']:<8} {datos['mvp']:<5} {datos['puntos']:<6}")
+            kills = datos['kills']
+            assists = datos['assists']
+            deaths = 1 if datos['deaths'] else 0
+
+            puntaje = calcular_puntaje(kills, assists, deaths)
+
+            estadisticas[jugador]['kills'] += kills
+            estadisticas[jugador]['assists'] += assists
+            estadisticas[jugador]['deaths'] += deaths
+            estadisticas[jugador]['puntos'] += puntaje
+
+            if puntaje > max_puntaje:
+                max_puntaje = puntaje
+                mvp = jugador
+                
+        estadisticas[mvp]['MVPs'] += 1
+        print(f"MVP de la ronda: {mvp}")
+
+        print("\nJugador     Kills  Assists  Deaths  MVPs  Puntos")
+        print("--------------------------------------------------")
+        for jugador, datos in sorted(estadisticas.items(), key=lambda x: x[1]['puntos'], reverse=True):
+            print(f"{jugador:<12}{datos['kills']:>5}  {datos['assists']:>7}  {datos['deaths']:>6}  {datos['MVPs']:>4}  {datos['puntos']:>7}")
